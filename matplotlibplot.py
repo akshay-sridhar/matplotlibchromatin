@@ -149,12 +149,26 @@ for i in xrange(0,printframe.size):
 	ending_line = currentframe * lines_per_frame
 	currentcoods = xyz[starting_line:ending_line, :]
 
-	corecoods = np.zeros((n_cores,3), dtype = float)
-	coreorientations = np.zeros((n_cores*3, 3), dtype = float)
+	core_coods = np.zeros((n_cores,3), dtype = float)
+	core_orientations = np.zeros((n_cores*3, 3), dtype = float)
 
 	for core_index in xrange(0, n_cores):
-		corecoods[core_index, :] = currentcoods[(core_index-1)*4, :]
-		coreorientations[core_index]
+		core_coods[core_index, :] = currentcoods[(core_index-1)*4, :]
+		core_orientations[((core_index*3)+0),:] = currentcoods[((core_index*4)+1),:]
+		core_orientations[((core_index*3)+1),:] = currentcoods[((core_index*4)+2),:]
+		core_orientations[((core_index*3)+2),:] = currentcoods[((core_index*4)+3),:]
+
+
+	dna_linker_coods = np.zeros((n_linkers,3), dtype = float)
+	dna_linker_orientations = np.zeros((n_linkers*3,3), dtype = float)
+	
+	deltaZ = n_cores * 4 #This is to go down the array of co-ordinates. As the Core xyz(s) are at the top.
+
+	for dna_linker_index in xrange(0,n_linkers):
+		dna_linker_coods[]
+
+
+
 
 
 
