@@ -153,7 +153,7 @@ for i in xrange(0,printframe.size):
 	core_orientations = np.zeros((n_cores*3, 3), dtype = float)
 
 	for core_index in xrange(0, n_cores):
-		core_coods[core_index, :] = currentcoods[(core_index-1)*4, :]
+		core_coods[core_index, :] = currentcoods[core_index*4, :]
 		core_orientations[((core_index*3)+0),:] = currentcoods[((core_index*4)+1),:]
 		core_orientations[((core_index*3)+1),:] = currentcoods[((core_index*4)+2),:]
 		core_orientations[((core_index*3)+2),:] = currentcoods[((core_index*4)+3),:]
@@ -165,7 +165,35 @@ for i in xrange(0,printframe.size):
 	deltaZ = n_cores * 4 #This is to go down the array of co-ordinates. As the Core xyz(s) are at the top.
 
 	for dna_linker_index in xrange(0,n_linkers):
-		dna_linker_coods[]
+		dna_linker_coods[dna_linker_index,:] = currentcoods[deltaZ+(dna_linker_index*4),:]
+		dna_linker_orientations[((dna_linker_index*3)+0),:] = currentcoods[deltaZ+(dna_linker_index*4)+1,:]
+		dna_linker_orientations[((dna_linker_index*3)+1),:] = currentcoods[deltaZ+(dna_linker_index*4)+2,:] 
+		dna_linker_orientations[((dna_linker_index*3)+2),:] = currentcoods[deltaZ+(dna_linker_index*4)+3,:]
+
+	n_histonetails = n_cores * 50
+	histonetail_coods = np.zeros((n_histonetails,3), dtype = float)
+
+	deltaZ = deltaZ + (n_linkers*4)
+
+	for histonetail_index in xrange(0,n_histonetails):
+		histonetail_coods[histonetail_index,:] = currentcoods[deltaZ+histonetail_index,:]
+
+
+
+	if args.togglelinker == 'Y':
+
+		deltaZ = deltaZ + n_histonetails
+		linker_histone_coods1 = np.zeros((n_cores,3), dtype = float)
+		linker_histone_coods2 = np.zeros((n_cores,3), dtype = float)
+		linker_histone_coods3 = np.zeros((n_cores,3), dtype = float)
+
+		for linker_histone_index in xrange(0,n_cores):
+
+			linker_histone_coods1[linker_histone_index,:] = currentcoods[deltaZ+(linker_histone_index*3)+0,:]
+			linker_histone_coods2[linker_histone_index,:] = currentcoods[deltaZ+(linker_histone_index*3)+1,:]
+			linker_histone_coods3[linker_histone_index,:] = currentcoods[deltaZ+(linker_histone_index*3)+2,:]
+
+			
 
 
 
