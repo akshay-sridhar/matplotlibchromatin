@@ -162,7 +162,7 @@ for i in xrange(0,printframe.size):
 	dna_linker_coods = np.zeros((n_linkers,3), dtype = float)
 	dna_linker_orientations = np.zeros((n_linkers*3,3), dtype = float)
 	
-	deltaZ = n_cores * 4 #This is to go down the array of co-ordinates. As the Core xyz(s) are at the top.
+	deltaZ = n_cores * 4 #deltaZ....This is to go down the array of co-ordinates. As the Core xyz(s) are at the top.
 
 	for dna_linker_index in xrange(0,n_linkers):
 		dna_linker_coods[dna_linker_index,:] = currentcoods[deltaZ+(dna_linker_index*4),:]
@@ -193,7 +193,7 @@ for i in xrange(0,printframe.size):
 			linker_histone_coods2[linker_histone_index,:] = currentcoods[deltaZ+(linker_histone_index*3)+1,:]
 			linker_histone_coods3[linker_histone_index,:] = currentcoods[deltaZ+(linker_histone_index*3)+2,:]
 
-			
+
 
 
 
