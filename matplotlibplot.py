@@ -323,16 +323,18 @@ for i in xrange(0,printframe.size):
 		Xc, Yc, Zc = nucleosome_cylinder(r, core_x, core_y, core_z)
 
 		if rem == rem2:
-			cc = 1
+			cc = 'b'
 		elif rem != rem2:
-			cc = 5
+			cc = 'r'
 
-		ax.plot_surface(Xc, Yc, Zc, rstride=1, cstride=1, antialiased=True)
+		ax.plot_surface(Xc, Yc, Zc, rstride=1, cstride=1, antialiased=True, color = cc, linewidth = 0)
 
 		Xn, Yn, Zn = wrapper_dna_coods(r, core_x, core_y, core_z)
 
 		links_sum = links_sum + histonedetails[core_index+1]
 
+
+ax.set_axis_off()
 plt.show()
 
 
