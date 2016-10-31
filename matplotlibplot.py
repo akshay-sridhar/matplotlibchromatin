@@ -26,8 +26,7 @@ import sys
 
 def cylinder():
 	'''
-	
-    Returns the unit cylinder that corresponds to the curve r.
+	Returns the unit cylinder that corresponds to the curve r.
     INPUTS:  ro - a vector of radii (Default = 3.8)
              n - number of coordinates to return for each element in r (Default = 40)
 
