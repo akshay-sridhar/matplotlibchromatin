@@ -6,9 +6,18 @@ except:
 
 try:
 	import matplotlib.pyplot as plt
+	from mpl_toolkits.mplot3d import Axes3D
+	import matplotlib
 except:
 	print('Error: Unable to access the matplotlib module\n')
 	sys.exit(1)
+
+try:
+	from pylab import *
+except:
+	print('Error: Unable to access the pylab module\n')
+	sys.exit(1)
+
 
 import argparse
 import os
@@ -25,28 +34,42 @@ def cylinder():
     OUTPUTS: x,y,z - coordinates of points
     '''
 
-    ro = 4.8
-    n = 40
+	ro = 4.8
+	n = 40
 
-    points = np.linspace(0,2*np.pi,n+1)
-    x = np.atleast_2d((ro-1) * np.cos(points))
-    y = np.atleast_2d((ro-1) * np.sin(points))
+	points = np.linspace(0,2*np.pi,n+1)
+	x = np.atleast_2d((ro-1) * np.cos(points))
+	y = np.atleast_2d((ro-1) * np.sin(points))
 
-    x = np.concactenate((x, x), axis = 1)
-    y = np.concactenate((y, y), axis = 1)
+	x = np.concatenate((x, x), axis = 0)
+	y = np.concatenate((y, y), axis = 0)
 
-    z = np.zeros((2,n+1), dtype = float)
-    z[1,:] = z[1,:] + 1.0
+	z = np.zeros((2,n+1), dtype = float)
+	z[1,:] = z[1,:] + 1.0
 
-    X = np.concactenate(((np.zeros(1,41, dtype = float)), x, (np.zeros(1,41, dtype = float))), axis = 1)
-    Y = np.concactenate(((np.zeros(1,41, dtype = float)), y, (np.zeros(1,41, dtype = float))), axis = 1)
-    Z = np.concactenate(((np.zeros(1,41, dtype = float)), z, (np.ones(1,41, dtype = float))), axis = 1)
+	A = np.zeros((1,41), dtype = float)
+	B = np.ones((1,41), dtype = float)
 
-    Z = (ro*Z) - (ro/2)
 
-    return X,Y,Z
+	X = np.concatenate((A, x, A), axis = 0)
+	Y = np.concatenate((A, y, A), axis = 0)
+	Z = np.concatenate((A, z, B), axis = 0)
+
+	Z = (ro*Z) - (ro/2)
+
+	return X,Y,Z
 
 def wrapper_dna_coods(r, core_x, core_y, core_z):
+
+	'''
+	If provided the co-ordinates of the nucleosome core 'r' and its orientations:
+	This function returns co-ordinates of the DNA wrapped around the core
+
+	The function assumes there are 170 base-pairs around each nucleosome with 2 wraps
+	Thus, a base pair is placed at 170 equal intervals around a total angle of (4*pi)
+
+	The deltaZ is set at 1.8 units (The height of the cylinder signifying the nucleosome core)
+	'''
 
 	ro = 4.8
 	d1 = 1.8
@@ -58,21 +81,39 @@ def wrapper_dna_coods(r, core_x, core_y, core_z):
 	X = ro * np.cos(thetas - (np.pi/2))
 	Y = ro * np.sin(thetas - (np.pi/2))
 
-	Xn = r[0] + (core_x[1]*X) + (core_y[1]*Y) + (core_z[1]*Z)
-	Yn = r[1] + (core_x[2]*X) + (core_y[2]*Y) + (core_z[2]*Z)
-	Zn = r[2] + (core_x[3]*X) + (core_y[3]*Y) + (core_z[3]*Z)
+	Xn = r[0] + (core_x[0]*X) + (core_y[0]*Y) + (core_z[0]*Z)
+	Yn = r[1] + (core_x[1]*X) + (core_y[1]*Y) + (core_z[1]*Z)
+	Zn = r[2] + (core_x[2]*X) + (core_y[2]*Y) + (core_z[2]*Z)
 
 	return Xn,Yn,Zn
 
 
 def nucleosome_cylinder(r,core_x,core_y,core_z):
+
+	'''
+	If provided the co-ordinates of the nucleosome core 'r' and its orientations:
+	This function returns the representative co-ordinates of the cylinder describing the nucelosome core
+
+	So, just hit python's representative of surf(Xc,Yc,Zc) to draw the cylinder
+	'''
+
 	X, Y, Z = cylinder()
 
-	Xc = r[0] + (core_x[1]*X) + (core_y[1]*Y) + (core_z[1]*Z)
-	Yc = r[1] + (core_x[2]*X) + (core_y[2]*Y) + (core_z[2]*Z)
-	Zc = r[2] + (core_x[3]*X) + (core_y[3]*Y) + (core_z[3]*Z)
+	
+	Xc = r[0] + (core_x[0]*X) + (core_y[0]*Y) + (core_z[0]*Z)
+	Yc = r[1] + (core_x[1]*X) + (core_y[1]*Y) + (core_z[1]*Z)
+	Zc = r[2] + (core_x[2]*X) + (core_y[2]*Y) + (core_z[2]*Z)
 
 	return Xc,Yc,Zc
+
+
+def plot_cylinder(Xc,Yc,Zc):
+
+	'''
+	This is python's version of surf used to plot the cylinders representative of the nucleosome cores
+	'''
+
+
 
 
 
@@ -93,7 +134,7 @@ Option 				Description
 
 Optional options
 -------------------------------------------------------------------------
--fc 			: The index of the first core to be plotted. DEFAULT = 1
+-fc 				: The index of the first core to be plotted. DEFAULT = 1
 -lh				: Linker histone present (Y/N). DEFAULT = Y
 -plh				: Plot linker histone (Y/N). DEFAULT = Y
 -fr 				: File with frame numbers to be rendered 
@@ -123,7 +164,7 @@ args.framefile = args.framefile[0]
 args.outputfile = args.outputfile[0]
 args.togglelinker = args.togglelinker[0]
 args.plotlinker = args.plotlinker[0]
-args.first_core = args.first_core[0]
+args.first_core = args.first_core
 
 if not os.path.isfile(args.xyzfile):
 	print('Input XYZ coordinate file does not exist\n')
@@ -160,12 +201,12 @@ elif args.togglelinker == 'N':
 	lines_per_frame = (4*n_cores) + (4*n_linkers) + (50*n_cores)
 
 
-xyz = np.genfromtxt(args.xyzfile, dtype = float, delimiter = '\t')
+xyz = np.genfromtxt(args.xyzfile, dtype = float)
 n_frames = int(np.floor(xyz.shape[0]/lines_per_frame))
 
 if args.framefile == 'Auto':
 
-	printframe = np.zeros((0), dtype = int)
+	printframe = np.zeros((1), dtype = int)
 
 	inputcheck = 'nok'
 	while(inputcheck == 'nok'):
@@ -204,6 +245,13 @@ else:
 		ErrorOut = 'Check the frames in the input file ' + str(args.framefile) + '. Entered a frame greater than the total number of frames' + str(n_frames) + '\n'
 		print(ErrorOut)
 		sys.exit(1)
+
+###############################################################################################################################
+
+fig = plt.figure()
+ax = fig.gca(projection = '3d')
+
+###############################################################################################################################
 
 for i in xrange(0,printframe.size):
 
@@ -268,9 +316,9 @@ for i in xrange(0,printframe.size):
 		rem2 = (core_index+1) % 2
 
 		r = core_coods[core_index,:]
-		core_x = core_orientations[(core_index*3)+1,:]
-		core_y = core_orientations[(core_index*3)+2,:]
-		core_z = core_orientations[(core_index*3)+3,:]
+		core_x = core_orientations[(core_index*3)+0,:]
+		core_y = core_orientations[(core_index*3)+1,:]
+		core_z = core_orientations[(core_index*3)+2,:]
 
 		Xc, Yc, Zc = nucleosome_cylinder(r, core_x, core_y, core_z)
 
@@ -279,12 +327,15 @@ for i in xrange(0,printframe.size):
 		elif rem != rem2:
 			cc = 5
 
+		ax.plot_surface(Xc, Yc, Zc, rstride=1, cstride=1, antialiased=True)
+
 		Xn, Yn, Zn = wrapper_dna_coods(r, core_x, core_y, core_z)
 
-		
-
-
 		links_sum = links_sum + histonedetails[core_index+1]
+
+plt.show()
+
+
 
 
 
