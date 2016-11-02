@@ -12,16 +12,17 @@ except:
 	print('Error: Unable to access the matplotlib module\n')
 	sys.exit(1)
 
-try:
-	from pylab import *
-except:
-	print('Error: Unable to access the pylab module\n')
-	sys.exit(1)
-
-
 import argparse
 import os
 import sys
+
+def unitvector(v):
+	'''
+	Returns the unit-vector of any 3D vector
+	'''
+	normal = np.linalg.norm(v)
+	UV = v/normal
+	return UV
 
 
 def cylinder():
@@ -106,11 +107,77 @@ def nucleosome_cylinder(r,core_x,core_y,core_z):
 	return Xc,Yc,Zc
 
 
-def plot_cylinder(Xc,Yc,Zc):
+def draw_DNA(ax, plottedDNA):
 
 	'''
-	This is python's version of surf used to plot the cylinders representative of the nucleosome cores
+	This is python's version of surface used to draw the DNA
+	Provide the 'ax' class to it and the co-ordinates of the DNA
 	'''
+
+	numDNAdrawn = plottedDNA.shape[0]
+
+	DNAthetas = np.linspace(0, 2*np.pi, 41)
+	xc = np.atleast_2d(np.cos(DNAthetas))
+	yc = np.atleast_2d(np.sin(DNAthetas))
+	zc = np.atleast_2d(np.zeros((xc.size), dtype = float))
+
+	#Now plotting the zeroth element.
+	#Don't want an if statement inside the loop for every iteration.
+	########################################################################################
+	BBtheta = np.concatenate((xc,yc,zc), axis = 0)
+	FFtheta = BBtheta
+
+	deltaDNA = unitvector(plottedDNA[2,:] - plottedDNA[0,:])
+	sph_theta = np.arctan2(deltaDNA[1], deltaDNA[2])
+	sph_phi = np.arccos(deltaDNA[2])
+
+	Rotmat = np.zeros((3,3), dtype = float)
+	Rotmat[0,0] = np.cos(sph_theta)
+	Rotmat[0,1] = np.cos(sph_phi) * np.sin(sph_theta)
+	Rotmat[0,2] = np.sin(sph_phi) * np.sin(sph_theta)
+	Rotmat[1,0] = -1 * np.sin(sph_theta)
+	Rotmat[1,1] = np.cos(sph_phi) * np.cos(sph_theta)
+	Rotmat[1,2] = np.sin(sph_phi) * np.cos(sph_theta)
+	Rotmat[2,0] = 0.0
+	Rotmat[2,1] = -1 * np.sin(sph_phi)
+	Rotmat[2,2] = np.cos(sph_phi)
+
+	BB = np.dot(Rotmat, BBtheta)
+	FF = np.dot(Rotmat, FFtheta)
+
+	BB = BB - np.transpose(np.atleast_2d(np.mean(BB, axis = 1))) + np.transpose(np.atleast_2d(plottedDNA[0,:]))
+	BB = BB - np.transpose(np.atleast_2d(np.mean(BB, axis = 1))) + np.transpose(np.atleast_2d(plottedDNA[0,:]))
+
+	FF = FF - np.transpose(np.atleast_2d(np.mean(FF, axis = 1))) + np.transpose(np.atleast_2d(plottedDNA[1,:]))
+
+	plot_x = np.concatenate((np.atleast_2d(BB[0,:], np.atleast_2d(FF[0,:]))), axis = 0)
+	plot_y = np.concatenate((np.atleast_2d(BB[1,:], np.atleast_2d(FF[0,:]))), axis = 0)
+	plot_z = np.concatenate((np.atleast_2d(BB[2,:], np.atleast_2d(FF[0,:]))), axis = 0)
+
+	ax.plot_surface(plot_x, plot_y, plot_d)
+	
+
+
+
+	########################################################################################
+
+
+	for j in xrange(1,numDNAdrawn-1):
+		if j == 0:
+
+			a_b = xc
+			b_b = yc
+			c_b = zc
+			a_f = xc
+			b_f = yc
+			c_f = zc
+
+		else:
+
+
+
+
+		deltaDNA = plottedDNA[j+2,:] - plottedDNA[j,:]
 
 
 
@@ -134,7 +201,7 @@ Option 				Description
 Optional options
 -------------------------------------------------------------------------
 -fc 				: The index of the first core to be plotted. DEFAULT = 1
--lh				: Linker histone present (Y/N). DEFAULT = Y
+-lh				: Linker histone present in co-ordinate file (Y/N). DEFAULT = Y
 -plh				: Plot linker histone (Y/N). DEFAULT = Y
 -fr 				: File with frame numbers to be rendered 
 
@@ -182,12 +249,15 @@ if args.togglelinker != 'Y' and args.togglelinker != 'N':
 	print('Only values of "Y" and "N" are allowed with option -lh\n')
 	sys.exit(1)
 
-elif args.togglelinker == 'N':
-	args.plotlinker = 'N'
-
 if args.plotlinker != 'Y' and args.plotlinker != 'N':
 	print('Only values of "Y" and "N" are allowed with option -plh\n')
 	sys.exit(1)
+
+elif args.togglelinker == 'N' and args.plotlinker == 'Y':
+	print('Cannot plot linker Histones not in co-ordinate file. Changing -plh option to "N" from "Y"\n')
+	args.plotlinker = 'N'
+
+
 
 histonedetails = np.genfromtxt(args.histfile, dtype = int, usecols = 0)
 n_cores = histonedetails[0]
@@ -245,22 +315,29 @@ else:
 		print(ErrorOut)
 		sys.exit(1)
 
-###############################################################################################################################
 
-fig = plt.figure()
-ax = fig.gca(projection = '3d')
-
-###############################################################################################################################
 
 for i in xrange(0,printframe.size):
 
+
+	###############################################################################################################################
+	#Initializing the plot
+
+	exec('fig' + str(i) + '= plt.figure()')
+	exec('ax = fig' + str(i) + '.gca(projection = "3d")')
+	ax.set_axis_off()	
+	###############################################################################################################################
+
 	currentframe = printframe[i]
+
 	starting_line = (currentframe - 1) * lines_per_frame
 	ending_line = currentframe * lines_per_frame
 	currentcoods = xyz[starting_line:ending_line, :]
 
 	core_coods = np.zeros((n_cores,3), dtype = float)
 	core_orientations = np.zeros((n_cores*3, 3), dtype = float)
+
+
 
 	for core_index in xrange(0, n_cores):
 		core_coods[core_index, :] = currentcoods[core_index*4, :]
@@ -306,9 +383,18 @@ for i in xrange(0,printframe.size):
 	center = np.mean(core_coods, axis = 0)
 
 	links_sum = np.sum(histonedetails[1:args.first_core])
+	#Because we only want to plot from args.first_core onwards.. 
+	#This links_sum is to help skip the linker DNA associated with non-plotted core. 
+
 	rem = args.first_core % 2
 
 	colorindex = np.asarray(np.matrix('0,0,1;0,1,0;1,1,0;1,0,0;1,1,1;0.8,0.2,0;0.251,0.8784,0.8157'))
+	
+	plottedDNAX = np.empty((0), dtype = float)
+	plottedDNAY = np.empty((0), dtype = float)
+	plottedDNAZ = np.empty((0), dtype = float)
+	#The linker and nucleosome bound DNA are represented similarly.
+	#So, store all the DNA coods for this frame in these three arrays and draw them together. 
 
 	for core_index in xrange(args.first_core-1,n_cores):
 
@@ -329,11 +415,31 @@ for i in xrange(0,printframe.size):
 		ax.plot_surface(Xc, Yc, Zc, rstride=1, cstride=1, antialiased=True, color = cc, linewidth = 0)
 
 		Xn, Yn, Zn = wrapper_dna_coods(r, core_x, core_y, core_z)
+		plottedDNAX = np.concatenate((plottedDNAX, Xn), axis = 0)
+		plottedDNAY = np.concatenate((plottedDNAY, Yn), axis = 0)
+		plottedDNAZ = np.concatenate((plottedDNAZ, Zn), axis = 0)
 
-		links_sum = links_sum + histonedetails[core_index+1]
+	
+	plottedDNAX = np.concatenate((plottedDNAX, dna_linker_coods[links_sum:,0]), axis = 0)
+	plottedDNAY = np.concatenate((plottedDNAY, dna_linker_coods[links_sum:,1]), axis = 0)
+	plottedDNAZ = np.concatenate((plottedDNAZ, dna_linker_coods[links_sum:,2]), axis = 0)
+
+	plottedDNA = np.concatenate((np.transpose(np.atleast_2d(plottedDNAX)),np.transpose(np.atleast_2d(plottedDNAY)),np.transpose(np.atleast_2d(plottedDNAZ))), axis = 1)
+	
+	draw_DNA(plottedDNA, ax)
+
+	
 
 
-ax.set_axis_off()
+
+
+
+
+
+
+
+
+
 plt.show()
 
 
