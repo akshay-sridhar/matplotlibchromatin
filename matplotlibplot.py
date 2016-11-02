@@ -107,7 +107,7 @@ def nucleosome_cylinder(r,core_x,core_y,core_z):
 	return Xc,Yc,Zc
 
 
-def draw_DNA(ax, plottedDNA):
+def draw_DNA(plottedDNA, ax, histonedetails):
 
 	'''
 	This is python's version of surface used to draw the DNA
@@ -121,8 +121,9 @@ def draw_DNA(ax, plottedDNA):
 	yc = np.atleast_2d(np.sin(DNAthetas))
 	zc = np.atleast_2d(np.zeros((xc.size), dtype = float))
 
+	########################################################################################
 	#Now plotting the zeroth element.
-	#Don't want an if statement inside the loop for every iteration.
+	#Don't want an if statement slowing down the loop iteration.
 	########################################################################################
 	BBtheta = np.concatenate((xc,yc,zc), axis = 0)
 	FFtheta = BBtheta
@@ -154,34 +155,48 @@ def draw_DNA(ax, plottedDNA):
 	plot_y = np.concatenate((np.atleast_2d(BB[1,:], np.atleast_2d(FF[0,:]))), axis = 0)
 	plot_z = np.concatenate((np.atleast_2d(BB[2,:], np.atleast_2d(FF[0,:]))), axis = 0)
 
-	ax.plot_surface(plot_x, plot_y, plot_d)
-	
+	colourmat = 6.0 * np.ones((2,41), dtype = float)
 
-
-
-	########################################################################################
-
-
+	#ax.plot_surface(plot_x, plot_y, plot_z, color = 'c', linewidth = 0, alpha = 0.50)
+	##############################################################################################################
+	#Now plotting the rest of the elements until the second last one
+	##############################################################################################################
+	last_index = 0
+	first = 0
 	for j in xrange(1,numDNAdrawn-1):
-		if j == 0:
 
-			a_b = xc
-			b_b = yc
-			c_b = zc
-			a_f = xc
-			b_f = yc
-			c_f = zc
+		BB = FF
+		if j == (numDNAdrawn-2):
+			deltaDNA = unitvector(plottedDNA[j+1,:] - plottedDNA[j,:])
 
 		else:
+			deltaDNA = unitvector(plottedDNA[j+2,:] - plottedDNA[j,:])
+
+		sph_theta = np.arctan2(deltaDNA[1], deltaDNA[2])
+		sph_phi = np.arccos(deltaDNA[2])
+
+		Rotmat[0,0] = np.cos(sph_theta)
+		Rotmat[0,1] = np.cos(sph_phi) * np.sin(sph_theta)
+		Rotmat[0,2] = np.sin(sph_phi) * np.sin(sph_theta)
+		Rotmat[1,0] = -1 * np.sin(sph_theta)
+		Rotmat[1,1] = np.cos(sph_phi) * np.cos(sph_theta)
+		Rotmat[1,2] = np.sin(sph_phi) * np.cos(sph_theta)
+		Rotmat[2,0] = 0.0
+		Rotmat[2,1] = -1 * np.sin(sph_phi)
+		Rotmat[2,2] = np.cos(sph_phi)
+
+		FFtheta[0,:] = (np.cos(sph_theta) * xc) + (np.sin(sph_theta) * yc)
+		FFtheta[1,:] = (-1 * np.sin(sph_theta) * xc) + (np.cos(sph_theta)*yc)
+		FF = np.dot(Rotmat, FFtheta)
 
 
+		FF = FF - np.transpose(np.atleast_2d(np.mean(FF, axis = 1))) + np.transpose(np.atleast_2d(plottedDNA[j+1,:]))
 
+		plot_x = np.concatenate((np.atleast_2d(BB[0,:], np.atleast_2d(FF[0,:]))), axis = 0)
+		plot_y = np.concatenate((np.atleast_2d(BB[1,:], np.atleast_2d(FF[0,:]))), axis = 0)
+		plot_z = np.concatenate((np.atleast_2d(BB[2,:], np.atleast_2d(FF[0,:]))), axis = 0)
 
-		deltaDNA = plottedDNA[j+2,:] - plottedDNA[j,:]
-
-
-
-
+		#ax.plot_surface(plot_x, plot_y, plot_z, color = 'c', alpha = 0.1, linewidth = 0)
 
 
 parser = argparse.ArgumentParser(prog = 'CG Chromatin Visualizer', add_help = False,  formatter_class = argparse.RawDescriptionHelpFormatter, description =\
@@ -426,20 +441,9 @@ for i in xrange(0,printframe.size):
 
 	plottedDNA = np.concatenate((np.transpose(np.atleast_2d(plottedDNAX)),np.transpose(np.atleast_2d(plottedDNAY)),np.transpose(np.atleast_2d(plottedDNAZ))), axis = 1)
 	
-	draw_DNA(plottedDNA, ax)
+	draw_DNA(plottedDNA, ax, histonedetails)
 
 	
-
-
-
-
-
-
-
-
-
-
-
 plt.show()
 
 
