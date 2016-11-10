@@ -118,7 +118,7 @@ def draw_DNA(plottedDNA, ax, histonedetails):
 
 	numDNAdrawn = plottedDNA.shape[0]
 
-	DNAthetas = np.linspace(0, 2*np.pi, 41)
+	DNAthetas = np.linspace(0, 2*np.pi, 100)
 	xc = np.atleast_2d(np.cos(DNAthetas))
 	yc = np.atleast_2d(np.sin(DNAthetas))
 	zc = np.atleast_2d(np.zeros((xc.size), dtype = float))
@@ -231,6 +231,54 @@ def draw_DNA(plottedDNA, ax, histonedetails):
 
 	ax.plot_surface(plot_x, plot_y, plot_z, color = 'r', rstride=1, cstride=1, antialiased=True, linewidth = 0)
 ###################################################################################################################################################
+###################################################################################################################################################
+
+def draw_ball(linker_histone_coods1, linker_histone_coods2, linker_histone_coods3, ax, charges):
+
+	sph_rad = 1.4
+
+	phi = np.linspace(0, 2*np.pi, 25, endpoint = True, dtype = float)
+	theta = np.linspace(0, np.pi, 25, endpoint = True, dtype = float)
+
+	x = sph_rad * np.outer(np.cos(phi), np.sin(theta))
+	y = sph_rad * np.outer(np.sin(phi), np.sin(theta))
+	z = sph_rad * np.outer(np.ones(np.size(phi)), np.cos(theta))
+
+
+	colormat = np.empty((3), dtype = str)
+	if charges.size == 0:
+		colormat[0] = 'c'
+		colormat[1] = 'c'
+		colormat[2] = 'c'
+
+	else:
+		colormat[np.argmax(charges)] = 'm'
+		colormat[np.argmin(charges)] = 'c'
+		colormat[3 - np.argmin(charges) - np.argmax(charges)] = 'y'
+
+
+	for i in xrange(0, linker_histone_coods1.shape[0]):
+
+		plot_x = linker_histone_coods1[i,0] + x
+		plot_y = linker_histone_coods1[i,1] + y
+		plot_z = linker_histone_coods1[i,2] + z
+
+		ax.plot_surface(plot_x, plot_y, plot_z, color = colormat[0], rstride=1, cstride=1, antialiased=True, linewidth = 0)
+
+		plot_x = linker_histone_coods2[i,0] + x
+		plot_y = linker_histone_coods2[i,1] + y
+		plot_z = linker_histone_coods2[i,2] + z
+
+		ax.plot_surface(plot_x, plot_y, plot_z, color = colormat[1], rstride=1, cstride=1, antialiased=True, linewidth = 0)
+
+		plot_x = linker_histone_coods3[i,0] + x
+		plot_y = linker_histone_coods3[i,1] + y
+		plot_z = linker_histone_coods3[i,2] + z
+
+		ax.plot_surface(plot_x, plot_y, plot_z, color = colormat[2], rstride=1, cstride=1, antialiased=True, linewidth = 0)
+
+###################################################################################################################################################
+###################################################################################################################################################
 		
 parser = argparse.ArgumentParser(prog = 'CG Chromatin Visualizer', add_help = False,  formatter_class = argparse.RawDescriptionHelpFormatter, description =\
 '''
@@ -251,21 +299,24 @@ Optional options
 -fc 				: The index of the first core to be plotted. DEFAULT = 1
 -lh				: Linker histone present in co-ordinate file (Y/N). DEFAULT = Y
 -plh				: Plot linker histone (Y/N). DEFAULT = Y
--fr 				: File with frame numbers to be rendered 
+-fr 				: File with frame numbers to be rendered
+-lc 				: File with charges of Linker Histones 1,2,3. Default = Equal Charges
 
 Other options
 -------------------------------------------------------------------------
--h, --help			: Show this menu and exit\n\n
+-h, --help			: Show this menu and exit
+
 ''')
 
 
 parser.add_argument('-f', nargs = 1, dest = 'xyzfile', help = argparse.SUPPRESS, required = True)
 parser.add_argument('-p', nargs = 1, dest = 'histfile', help = argparse.SUPPRESS, required = True)
 
-parser.add_argument('-fc', nargs = 1, dest = 'first_core', default = 1, type = int, help = argparse.SUPPRESS)
+parser.add_argument('-fc', nargs = 1, dest = 'first_core', default = [1], type = int, help = argparse.SUPPRESS)
 parser.add_argument('-lh', nargs = 1, dest = 'togglelinker', default = ['Y'], help = argparse.SUPPRESS)
 parser.add_argument('-plh', nargs = 1, dest = 'plotlinker', default = ['Y'], help = argparse.SUPPRESS)
 parser.add_argument('-fr', nargs = 1, dest = 'framefile', default = ['Auto'], help = argparse.SUPPRESS)
+parser.add_argument('-lc', nargs = 1, dest = 'linkercharges', default = ['Auto'], help = argparse.SUPPRESS)
 
 parser.add_argument('-o', nargs = 1, dest = 'outputfile', default = ['frame.eps'], help = argparse.SUPPRESS)
 parser.add_argument('-h', '--help' , action = 'help', help = argparse.SUPPRESS)
@@ -278,7 +329,8 @@ args.framefile = args.framefile[0]
 args.outputfile = args.outputfile[0]
 args.togglelinker = args.togglelinker[0]
 args.plotlinker = args.plotlinker[0]
-args.first_core = args.first_core
+args.first_core = args.first_core[0]
+args.linkercharges = args.linkercharges[0]
 
 if not os.path.isfile(args.xyzfile):
 	print('Input XYZ coordinate file does not exist\n')
@@ -305,7 +357,27 @@ elif args.togglelinker == 'N' and args.plotlinker == 'Y':
 	print('Cannot plot linker Histones not in co-ordinate file. Changing -plh option to "N" from "Y"\n')
 	args.plotlinker = 'N'
 
+if args.plotlinker == 'Y' and args.linkercharges != 'Auto':
+	if not os.path.isfile(args.linkercharges):
+		print('File containing charges of linker histones does not exist. Plotting with equal charges\n')
+		args.linkercharges = 'Auto'
 
+	else:
+		linker_charge = np.genfromtxt(args.linkercharges, dtype = float, usecols = 0)
+		if np.sum(np.int32(np.isnan(linker_charge))) > 0:
+			output = 'Check the charges in the file ' + args.linkercharges + '. Not a number entered.\nPlotting with equal charges\n'
+			print(output)
+			args.linkercharges = 'Auto'
+
+		elif linker_charge.size != 3:
+			print('Currently hard-coded for 3 beads per Linker Histone. Plotting with equal charges\n')
+			args.linkercharge = 'Auto'
+
+		else:
+			linkercharge = np.abs(linker_charge)
+
+###################################################################################################################################################
+###################################################################################################################################################
 
 histonedetails = np.genfromtxt(args.histfile, dtype = int, usecols = 0)
 n_cores = histonedetails[0]
@@ -346,7 +418,7 @@ if args.framefile == 'Auto':
 				inputcheck = 'ok'
 
 else:
-	printframe = np.genfromtxt(args.framefile, usecols = 0)
+	printframe = np.genfromtxt(args.framefile, usecols = 0, dtype = int)
 
 	if np.sum(np.int32(np.isnan(printframe))) > 0:
 		ErrorOut = 'Check the frames in the input file ' + str(args.framefile) + '. Only Integers allowed.\n'
@@ -354,7 +426,7 @@ else:
 		sys.exit(1)
 
 	elif np.amin(printframe) <= 0:
-		ErrorOut = 'Check the frames in the input file ' + str(args.framefile) + '. You have entered a negative frame number.\n'
+		ErrorOut = 'Check the frames in the input file ' + str(args.framefile) + '. You have entered a negative frame number or a float.\n'
 		print(ErrorOut)
 		sys.exit(1)
 
@@ -477,8 +549,21 @@ for i in xrange(0,printframe.size):
 	plottedDNA = np.concatenate((np.transpose(np.atleast_2d(plottedDNAX)),np.transpose(np.atleast_2d(plottedDNAY)),np.transpose(np.atleast_2d(plottedDNAZ))), axis = 1)
 	
 	draw_DNA(plottedDNA, ax, histonedetails)
-	
 
+	if args.plotlinker == 'Y':
+
+		plotted_linker_coods1 = linker_histone_coods1[args.first_core-1:,:]
+		plotted_linker_coods2 = linker_histone_coods2[args.first_core-1:,:]
+		plotted_linker_coods3 = linker_histone_coods3[args.first_core-1:,:]
+		##This is to avoid plotting Linker histones attached to nucleosome cores not plotted. 
+
+
+		if args.linkercharges == 'Auto':
+			draw_ball(plotted_linker_coods1, plotted_linker_coods2, plotted_linker_coods3, ax, np.empty((0)))
+		else:
+			draw_ball(plotted_linker_coods1, plotted_linker_coods2, plotted_linker_coods3, ax, linker_charge)
+	
+ax.set_aspect('equal')
 plt.show()
 
 
