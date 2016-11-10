@@ -15,16 +15,14 @@ except:
 import argparse
 import os
 import sys
-
+##############################################################################################################
 def unitvector(v):
 	'''
 	Returns the unit-vector of any 3D vector
 	'''
-	normal = np.linalg.norm(v)
-	UV = v/normal
+	UV = v/np.linalg.norm(v)
 	return UV
-
-
+##############################################################################################################
 def cylinder():
 	'''
 	Returns the unit cylinder that corresponds to the curve r.
@@ -58,6 +56,8 @@ def cylinder():
 	Z = (ro*Z) - (ro/2)
 
 	return X,Y,Z
+##############################################################################################################	
+##############################################################################################################
 
 def wrapper_dna_coods(r, core_x, core_y, core_z):
 
@@ -65,8 +65,8 @@ def wrapper_dna_coods(r, core_x, core_y, core_z):
 	If provided the co-ordinates of the nucleosome core 'r' and its orientations:
 	This function returns co-ordinates of the DNA wrapped around the core
 
-	The function assumes there are 170 base-pairs around each nucleosome with 2 wraps
-	Thus, a base pair is placed at 170 equal intervals around a total angle of (4*pi)
+	The function assumes there are 171 base-pairs around each nucleosome with 2 wraps
+	Thus, a base pair is placed at 171 equal intervals around a total angle of (4*pi)
 
 	The deltaZ is set at 1.8 units (The height of the cylinder signifying the nucleosome core)
 	'''
@@ -75,7 +75,7 @@ def wrapper_dna_coods(r, core_x, core_y, core_z):
 	d1 = 1.8
 
 	theta_0 = 0.6 * np.pi
-	thetas = np.linspace(theta_0, np.pi, num = 171, retstep = False, endpoint = True)
+	thetas = theta_0 + np.linspace(0, ((4*np.pi) - theta_0), num = 171, retstep = False, endpoint = True)
 
 	Z = d1 - ((thetas - theta_0) * ((2*d1)/((4*np.pi) - theta_0)))
 	X = ro * np.cos(thetas - (np.pi/2))
@@ -85,9 +85,10 @@ def wrapper_dna_coods(r, core_x, core_y, core_z):
 	Yn = r[1] + (core_x[1]*X) + (core_y[1]*Y) + (core_z[1]*Z)
 	Zn = r[2] + (core_x[2]*X) + (core_y[2]*Y) + (core_z[2]*Z)
 
-	return Xn,Yn,Zn
-
-
+	return Xn, Yn, Zn
+##############################################################################################################
+##############################################################################################################
+	
 def nucleosome_cylinder(r,core_x,core_y,core_z):
 
 	'''
@@ -105,13 +106,14 @@ def nucleosome_cylinder(r,core_x,core_y,core_z):
 	Zc = r[2] + (core_x[2]*X) + (core_y[2]*Y) + (core_z[2]*Z)
 
 	return Xc,Yc,Zc
-
+##############################################################################################################
+##############################################################################################################
 
 def draw_DNA(plottedDNA, ax, histonedetails):
 
 	'''
 	This is python's version of surface used to draw the DNA
-	Provide the 'ax' class to it and the co-ordinates of the DNA
+	Provide the 'ax' figure class to it and the co-ordinates of the DNA
 	'''
 
 	numDNAdrawn = plottedDNA.shape[0]
@@ -129,7 +131,7 @@ def draw_DNA(plottedDNA, ax, histonedetails):
 	FFtheta = BBtheta
 
 	deltaDNA = unitvector(plottedDNA[2,:] - plottedDNA[0,:])
-	sph_theta = np.arctan2(deltaDNA[1], deltaDNA[2])
+	sph_theta = np.arctan2(deltaDNA[0], deltaDNA[1])
 	sph_phi = np.arccos(deltaDNA[2])
 
 	Rotmat = np.zeros((3,3), dtype = float)
@@ -143,6 +145,7 @@ def draw_DNA(plottedDNA, ax, histonedetails):
 	Rotmat[2,1] = -1 * np.sin(sph_phi)
 	Rotmat[2,2] = np.cos(sph_phi)
 
+
 	BB = np.dot(Rotmat, BBtheta)
 	FF = np.dot(Rotmat, FFtheta)
 
@@ -152,27 +155,23 @@ def draw_DNA(plottedDNA, ax, histonedetails):
 	FF = FF - np.transpose(np.atleast_2d(np.mean(FF, axis = 1))) + np.transpose(np.atleast_2d(plottedDNA[1,:]))
 
 	plot_x = np.concatenate((np.atleast_2d(BB[0,:], np.atleast_2d(FF[0,:]))), axis = 0)
-	plot_y = np.concatenate((np.atleast_2d(BB[1,:], np.atleast_2d(FF[0,:]))), axis = 0)
-	plot_z = np.concatenate((np.atleast_2d(BB[2,:], np.atleast_2d(FF[0,:]))), axis = 0)
+	plot_y = np.concatenate((np.atleast_2d(BB[1,:], np.atleast_2d(FF[1,:]))), axis = 0)
+	plot_z = np.concatenate((np.atleast_2d(BB[2,:], np.atleast_2d(FF[2,:]))), axis = 0)
 
-	colourmat = 6.0 * np.ones((2,41), dtype = float)
-
-	#ax.plot_surface(plot_x, plot_y, plot_z, color = 'c', linewidth = 0, alpha = 0.50)
+	ax.plot_surface(plot_x, plot_y, plot_z, color = 'r', rstride=1, cstride=1, antialiased=True, linewidth = 0)
 	##############################################################################################################
 	#Now plotting the rest of the elements until the second last one
 	##############################################################################################################
 	last_index = 0
 	first = 0
-	for j in xrange(1,numDNAdrawn-1):
-
+	
+	for j in xrange(1,numDNAdrawn-2):
+		
 		BB = FF
-		if j == (numDNAdrawn-2):
-			deltaDNA = unitvector(plottedDNA[j+1,:] - plottedDNA[j,:])
-
-		else:
-			deltaDNA = unitvector(plottedDNA[j+2,:] - plottedDNA[j,:])
-
-		sph_theta = np.arctan2(deltaDNA[1], deltaDNA[2])
+		
+		deltaDNA = unitvector(plottedDNA[j+2,:] - plottedDNA[j,:])
+		
+		sph_theta = np.arctan2(deltaDNA[0], deltaDNA[1])
 		sph_phi = np.arccos(deltaDNA[2])
 
 		Rotmat[0,0] = np.cos(sph_theta)
@@ -181,7 +180,7 @@ def draw_DNA(plottedDNA, ax, histonedetails):
 		Rotmat[1,0] = -1 * np.sin(sph_theta)
 		Rotmat[1,1] = np.cos(sph_phi) * np.cos(sph_theta)
 		Rotmat[1,2] = np.sin(sph_phi) * np.cos(sph_theta)
-		Rotmat[2,0] = 0.0
+		#Rotmat[2,0] = 0.0   (Not updating this every iteration.)
 		Rotmat[2,1] = -1 * np.sin(sph_phi)
 		Rotmat[2,2] = np.cos(sph_phi)
 
@@ -193,12 +192,46 @@ def draw_DNA(plottedDNA, ax, histonedetails):
 		FF = FF - np.transpose(np.atleast_2d(np.mean(FF, axis = 1))) + np.transpose(np.atleast_2d(plottedDNA[j+1,:]))
 
 		plot_x = np.concatenate((np.atleast_2d(BB[0,:], np.atleast_2d(FF[0,:]))), axis = 0)
-		plot_y = np.concatenate((np.atleast_2d(BB[1,:], np.atleast_2d(FF[0,:]))), axis = 0)
-		plot_z = np.concatenate((np.atleast_2d(BB[2,:], np.atleast_2d(FF[0,:]))), axis = 0)
+		plot_y = np.concatenate((np.atleast_2d(BB[1,:], np.atleast_2d(FF[1,:]))), axis = 0)
+		plot_z = np.concatenate((np.atleast_2d(BB[2,:], np.atleast_2d(FF[2,:]))), axis = 0)
 
-		#ax.plot_surface(plot_x, plot_y, plot_z, color = 'c', alpha = 0.1, linewidth = 0)
+		ax.plot_surface(plot_x, plot_y, plot_z, color = 'r', rstride=1, cstride=1, antialiased=True, linewidth = 0)
+
+	##############################################################################################################
+	#Now plotting the second last DNA base-par. I dont want an if-else statement within the Loop
+	##############################################################################################################
+
+	BB = FF
+			
+	deltaDNA = unitvector(plottedDNA[numDNAdrawn-1,:] - plottedDNA[numDNAdrawn-2,:])
+	
+	sph_theta = np.arctan2(deltaDNA[0], deltaDNA[1])
+	sph_phi = np.arccos(deltaDNA[2])
+
+	Rotmat[0,0] = np.cos(sph_theta)
+	Rotmat[0,1] = np.cos(sph_phi) * np.sin(sph_theta)
+	Rotmat[0,2] = np.sin(sph_phi) * np.sin(sph_theta)
+	Rotmat[1,0] = -1 * np.sin(sph_theta)
+	Rotmat[1,1] = np.cos(sph_phi) * np.cos(sph_theta)
+	Rotmat[1,2] = np.sin(sph_phi) * np.cos(sph_theta)
+	#Rotmat[2,0] = 0.0   (Not updating this every iteration.)
+	Rotmat[2,1] = -1 * np.sin(sph_phi)
+	Rotmat[2,2] = np.cos(sph_phi)
+
+	FFtheta[0,:] = (np.cos(sph_theta) * xc) + (np.sin(sph_theta) * yc)
+	FFtheta[1,:] = (-1 * np.sin(sph_theta) * xc) + (np.cos(sph_theta)*yc)
+	FF = np.dot(Rotmat, FFtheta)
 
 
+	FF = FF - np.transpose(np.atleast_2d(np.mean(FF, axis = 1))) + np.transpose(np.atleast_2d(plottedDNA[j+1,:]))
+
+	plot_x = np.concatenate((np.atleast_2d(BB[0,:], np.atleast_2d(FF[0,:]))), axis = 0)
+	plot_y = np.concatenate((np.atleast_2d(BB[1,:], np.atleast_2d(FF[1,:]))), axis = 0)
+	plot_z = np.concatenate((np.atleast_2d(BB[2,:], np.atleast_2d(FF[2,:]))), axis = 0)
+
+	ax.plot_surface(plot_x, plot_y, plot_z, color = 'r', rstride=1, cstride=1, antialiased=True, linewidth = 0)
+###################################################################################################################################################
+		
 parser = argparse.ArgumentParser(prog = 'CG Chromatin Visualizer', add_help = False,  formatter_class = argparse.RawDescriptionHelpFormatter, description =\
 '''
 *************************************************************************
@@ -339,8 +372,8 @@ for i in xrange(0,printframe.size):
 	#Initializing the plot
 
 	exec('fig' + str(i) + '= plt.figure()')
-	exec('ax = fig' + str(i) + '.gca(projection = "3d")')
-	ax.set_axis_off()	
+	exec("ax = fig" + str(i) + ".gca(projection = '3d')")
+	ax.set_axis_off()
 	###############################################################################################################################
 
 	currentframe = printframe[i]
@@ -403,7 +436,6 @@ for i in xrange(0,printframe.size):
 
 	rem = args.first_core % 2
 
-	colorindex = np.asarray(np.matrix('0,0,1;0,1,0;1,1,0;1,0,0;1,1,1;0.8,0.2,0;0.251,0.8784,0.8157'))
 	
 	plottedDNAX = np.empty((0), dtype = float)
 	plottedDNAY = np.empty((0), dtype = float)
@@ -425,25 +457,28 @@ for i in xrange(0,printframe.size):
 		if rem == rem2:
 			cc = 'b'
 		elif rem != rem2:
-			cc = 'r'
+			cc = '0.75'
 
 		ax.plot_surface(Xc, Yc, Zc, rstride=1, cstride=1, antialiased=True, color = cc, linewidth = 0)
 
 		Xn, Yn, Zn = wrapper_dna_coods(r, core_x, core_y, core_z)
-		plottedDNAX = np.concatenate((plottedDNAX, Xn), axis = 0)
-		plottedDNAY = np.concatenate((plottedDNAY, Yn), axis = 0)
-		plottedDNAZ = np.concatenate((plottedDNAZ, Zn), axis = 0)
+		
 
-	
-	plottedDNAX = np.concatenate((plottedDNAX, dna_linker_coods[links_sum:,0]), axis = 0)
-	plottedDNAY = np.concatenate((plottedDNAY, dna_linker_coods[links_sum:,1]), axis = 0)
-	plottedDNAZ = np.concatenate((plottedDNAZ, dna_linker_coods[links_sum:,2]), axis = 0)
+		current_linker_coodsX = dna_linker_coods[links_sum:(links_sum+histonedetails[core_index+1]),0]
+		current_linker_coodsY = dna_linker_coods[links_sum:(links_sum+histonedetails[core_index+1]),1]
+		current_linker_coodsZ = dna_linker_coods[links_sum:(links_sum+histonedetails[core_index+1]),2]
+
+		plottedDNAX = np.concatenate((plottedDNAX, Xn, current_linker_coodsX), axis = 0)
+		plottedDNAY = np.concatenate((plottedDNAY, Yn, current_linker_coodsY), axis = 0)
+		plottedDNAZ = np.concatenate((plottedDNAZ, Zn, current_linker_coodsZ), axis = 0)
+
+		links_sum = links_sum + histonedetails[core_index+1]
 
 	plottedDNA = np.concatenate((np.transpose(np.atleast_2d(plottedDNAX)),np.transpose(np.atleast_2d(plottedDNAY)),np.transpose(np.atleast_2d(plottedDNAZ))), axis = 1)
 	
 	draw_DNA(plottedDNA, ax, histonedetails)
-
 	
+
 plt.show()
 
 
