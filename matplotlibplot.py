@@ -1,3 +1,7 @@
+import argparse
+import os
+import sys
+
 try:
 	import numpy as np 
 except:
@@ -7,14 +11,11 @@ except:
 try:
 	import matplotlib.pyplot as plt
 	from mpl_toolkits.mplot3d import Axes3D
-	import matplotlib
 except:
 	print('Error: Unable to access the matplotlib module\n')
 	sys.exit(1)
 
-import argparse
-import os
-import sys
+
 ##############################################################################################################
 def unitvector(v):
 	'''
@@ -162,9 +163,7 @@ def draw_DNA(plottedDNA, ax, histonedetails):
 	##############################################################################################################
 	#Now plotting the rest of the elements until the second last one
 	##############################################################################################################
-	last_index = 0
-	first = 0
-	
+		
 	for j in xrange(1,numDNAdrawn-2):
 		
 		BB = FF
