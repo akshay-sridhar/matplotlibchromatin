@@ -11,6 +11,8 @@ except:
 try:
 	import matplotlib.pyplot as plt
 	from mpl_toolkits.mplot3d import Axes3D
+        from matplotlib.colors import LightSource
+        from matplotlib import cm
 except:
 	print('Error: Unable to access the matplotlib module\n')
 	sys.exit(1)
@@ -44,7 +46,7 @@ def cylinder():
 	y = np.concatenate((y, y), axis = 0)
 
 	z = np.zeros((2,n+1), dtype = float)
-	z[1,:] = z[1,:] + 1.0
+	z[1,:] = z[1,:] + 0.75
 
 	A = np.zeros((1,41), dtype = float)
 	B = np.ones((1,41), dtype = float)
@@ -159,7 +161,7 @@ def draw_DNA(plottedDNA, ax, histonedetails):
 	plot_y = np.concatenate((np.atleast_2d(BB[1,:], np.atleast_2d(FF[1,:]))), axis = 0)
 	plot_z = np.concatenate((np.atleast_2d(BB[2,:], np.atleast_2d(FF[2,:]))), axis = 0)
 
-	ax.plot_surface(plot_x, plot_y, plot_z, color = 'r', rstride=1, cstride=1, antialiased=True, linewidth = 0)
+	ax.plot_surface(plot_x, plot_y, plot_z, color = 'r', rstride=10, cstride=10, antialiased=True, linewidth = 0, zorder = 5)
 	##############################################################################################################
 	#Now plotting the rest of the elements until the second last one
 	##############################################################################################################
@@ -194,7 +196,7 @@ def draw_DNA(plottedDNA, ax, histonedetails):
 		plot_y = np.concatenate((np.atleast_2d(BB[1,:], np.atleast_2d(FF[1,:]))), axis = 0)
 		plot_z = np.concatenate((np.atleast_2d(BB[2,:], np.atleast_2d(FF[2,:]))), axis = 0)
 
-		ax.plot_surface(plot_x, plot_y, plot_z, color = 'r', rstride=1, cstride=1, antialiased=True, linewidth = 0)
+		ax.plot_surface(plot_x, plot_y, plot_z, color = 'r', zorder = 5, rstride=10, cstride=10, antialiased=True, linewidth = 0)
 
 	##############################################################################################################
 	#Now plotting the second last DNA base-par. I dont want an if-else statement within the Loop
@@ -228,13 +230,13 @@ def draw_DNA(plottedDNA, ax, histonedetails):
 	plot_y = np.concatenate((np.atleast_2d(BB[1,:], np.atleast_2d(FF[1,:]))), axis = 0)
 	plot_z = np.concatenate((np.atleast_2d(BB[2,:], np.atleast_2d(FF[2,:]))), axis = 0)
 
-	ax.plot_surface(plot_x, plot_y, plot_z, color = 'r', rstride=1, cstride=1, antialiased=True, linewidth = 0)
+	ax.plot_surface(plot_x, plot_y, plot_z, color = 'r', zorder = 5, rstride=10, cstride=10, antialiased=True, linewidth = 0)
 ###################################################################################################################################################
 ###################################################################################################################################################
 
 def draw_ball(linker_histone_coods1, linker_histone_coods2, linker_histone_coods3, ax, charges):
 
-	sph_rad = 1.4
+	sph_rad = 1.0
 
 	phi = np.linspace(0, 2*np.pi, 25, endpoint = True, dtype = float)
 	theta = np.linspace(0, np.pi, 25, endpoint = True, dtype = float)
@@ -262,19 +264,19 @@ def draw_ball(linker_histone_coods1, linker_histone_coods2, linker_histone_coods
 		plot_y = linker_histone_coods1[i,1] + y
 		plot_z = linker_histone_coods1[i,2] + z
 
-		ax.plot_surface(plot_x, plot_y, plot_z, color = colormat[0], rstride=1, cstride=1, antialiased=True, linewidth = 0)
+		ax.plot_surface(plot_x, plot_y, plot_z, color = colormat[0], rstride=1, cstride=1, antialiased=True, linewidth = 0, zorder = 2)
 
 		plot_x = linker_histone_coods2[i,0] + x
 		plot_y = linker_histone_coods2[i,1] + y
 		plot_z = linker_histone_coods2[i,2] + z
 
-		ax.plot_surface(plot_x, plot_y, plot_z, color = colormat[1], rstride=1, cstride=1, antialiased=True, linewidth = 0)
+		ax.plot_surface(plot_x, plot_y, plot_z, color = colormat[1], rstride=1, cstride=1, antialiased=True, linewidth = 0, zorder = 2)
 
 		plot_x = linker_histone_coods3[i,0] + x
 		plot_y = linker_histone_coods3[i,1] + y
 		plot_z = linker_histone_coods3[i,2] + z
 
-		ax.plot_surface(plot_x, plot_y, plot_z, color = colormat[2], rstride=1, cstride=1, antialiased=True, linewidth = 0)
+		ax.plot_surface(plot_x, plot_y, plot_z, color = colormat[2], rstride=1, cstride=1, antialiased=True, linewidth = 0, zorder = 2)
 
 ###################################################################################################################################################
 ###################################################################################################################################################
@@ -530,7 +532,7 @@ for i in xrange(0,printframe.size):
 		elif rem != rem2:
 			cc = '0.75'
 
-		ax.plot_surface(Xc, Yc, Zc, rstride=1, cstride=1, antialiased=True, color = cc, linewidth = 0)
+		ax.plot_surface(Xc, Yc, Zc, rstride=1, cstride=1, antialiased=True, color = cc, linewidth = 0, zorder = 0)
 
 		Xn, Yn, Zn = wrapper_dna_coods(r, core_x, core_y, core_z)
 		
@@ -563,11 +565,15 @@ for i in xrange(0,printframe.size):
 			draw_ball(plotted_linker_coods1, plotted_linker_coods2, plotted_linker_coods3, ax, linker_charge)
 	
 ax.set_aspect('equal')
+
+ls1 = LightSource(225,-45)
+ls2 = LightSource(225,45)
+ls3 = LightSource(315,45)
+
+ax.view_init(-20,6)
+
+plt.tight_layout()
 plt.show()
-
-
-
-
 
 
 
