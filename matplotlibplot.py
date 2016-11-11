@@ -574,6 +574,3 @@ ax.view_init(-20,6)
 
 plt.tight_layout()
 plt.show()
-
-
-
