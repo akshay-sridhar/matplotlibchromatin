@@ -384,6 +384,11 @@ histonedetails = np.genfromtxt(args.histfile, dtype = int, usecols = 0)
 n_cores = histonedetails[0]
 n_linkers = np.sum(histonedetails) - n_cores
 
+if args.first_core > n_cores:
+	Errorour = 'The first core entered with the -fc is greater the number of cores in co-ordinate file - ' + str(n_cores) + '\n'
+	print(Errorour)
+	sys.exit(1)
+
 
 if args.togglelinker == 'Y':
 	lines_per_frame = (4*n_cores) + (4*n_linkers) + (53*n_cores)
