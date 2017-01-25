@@ -1,4 +1,9 @@
-import argparse
+try:
+	import argparse
+except:
+	print('Error: Unable to access the argparse module\n')
+	sys.exit(1)
+	
 import os
 import sys
 
@@ -385,8 +390,8 @@ n_cores = histonedetails[0]
 n_linkers = np.sum(histonedetails) - n_cores
 
 if args.first_core > n_cores:
-	Errorour = 'The first core entered with the -fc is greater the number of cores in co-ordinate file - ' + str(n_cores) + '\n'
-	print(Errorour)
+	Errorout = 'The first core entered with the -fc is greater the number of cores in co-ordinate file - ' + str(n_cores) + '\n'
+	print(Errorout)
 	sys.exit(1)
 
 
