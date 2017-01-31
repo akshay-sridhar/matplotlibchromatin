@@ -14,15 +14,12 @@ except:
 	sys.exit(1)
 
 try:
-	import matplotlib.pyplot as plt
-	from mpl_toolkits.mplot3d import Axes3D
-        from matplotlib.colors import LightSource
-        from matplotlib import cm
+	import mayavi.mlab as mlab
 except:
-	print('Error: Unable to access the matplotlib module\n')
+	print('Error: Unable to access the mayavi module\nNote that Mayavi also has dependencies on the VTK library\n')
 	sys.exit(1)
-
-
+#mlab.options.offscreen = True
+#Turn this option on/off if you want batch/interactive plotting
 ##############################################################################################################
 def unitvector(v):
 	'''
@@ -117,11 +114,11 @@ def nucleosome_cylinder(r,core_x,core_y,core_z):
 ##############################################################################################################
 ##############################################################################################################
 
-def draw_DNA(plottedDNA, ax, histonedetails):
+def draw_DNA(plottedDNA, histonedetails):
 
 	'''
 	This is python's version of surface used to draw the DNA
-	Provide the 'ax' figure class to it and the co-ordinates of the DNA
+	Provide the co-ordinates of the DNA
 	'''
 
 	numDNAdrawn = plottedDNA.shape[0]
@@ -165,8 +162,9 @@ def draw_DNA(plottedDNA, ax, histonedetails):
 	plot_x = np.concatenate((np.atleast_2d(BB[0,:], np.atleast_2d(FF[0,:]))), axis = 0)
 	plot_y = np.concatenate((np.atleast_2d(BB[1,:], np.atleast_2d(FF[1,:]))), axis = 0)
 	plot_z = np.concatenate((np.atleast_2d(BB[2,:], np.atleast_2d(FF[2,:]))), axis = 0)
-
-	ax.plot_surface(plot_x, plot_y, plot_z, color = 'r', rstride=10, cstride=10, antialiased=True, linewidth = 0, zorder = 5)
+	
+	cc = (1,0,0)
+	mlab.mesh(plot_x, plot_y, plot_z, color = cc)
 	##############################################################################################################
 	#Now plotting the rest of the elements until the second last one
 	##############################################################################################################
@@ -201,10 +199,10 @@ def draw_DNA(plottedDNA, ax, histonedetails):
 		plot_y = np.concatenate((np.atleast_2d(BB[1,:], np.atleast_2d(FF[1,:]))), axis = 0)
 		plot_z = np.concatenate((np.atleast_2d(BB[2,:], np.atleast_2d(FF[2,:]))), axis = 0)
 
-		ax.plot_surface(plot_x, plot_y, plot_z, color = 'r', zorder = 5, rstride=10, cstride=10, antialiased=True, linewidth = 0)
+		mlab.mesh(plot_x, plot_y, plot_z, color = cc)
 
 	##############################################################################################################
-	#Now plotting the second last DNA base-par. I dont want an if-else statement within the Loop
+	#Now plotting the second last DNA base-par. I don't want an if-else statement within the Loop
 	##############################################################################################################
 
 	BB = FF
@@ -235,11 +233,11 @@ def draw_DNA(plottedDNA, ax, histonedetails):
 	plot_y = np.concatenate((np.atleast_2d(BB[1,:], np.atleast_2d(FF[1,:]))), axis = 0)
 	plot_z = np.concatenate((np.atleast_2d(BB[2,:], np.atleast_2d(FF[2,:]))), axis = 0)
 
-	ax.plot_surface(plot_x, plot_y, plot_z, color = 'r', zorder = 5, rstride=10, cstride=10, antialiased=True, linewidth = 0)
+	mlab.mesh(plot_x, plot_y, plot_z, color = cc)
 ###################################################################################################################################################
 ###################################################################################################################################################
 
-def draw_ball(linker_histone_coods1, linker_histone_coods2, linker_histone_coods3, ax, charges):
+def draw_ball(linker_histone_coods1, linker_histone_coods2, linker_histone_coods3, charges):
 
 	sph_rad = 1.0
 
@@ -249,39 +247,41 @@ def draw_ball(linker_histone_coods1, linker_histone_coods2, linker_histone_coods
 	x = sph_rad * np.outer(np.cos(phi), np.sin(theta))
 	y = sph_rad * np.outer(np.sin(phi), np.sin(theta))
 	z = sph_rad * np.outer(np.ones(np.size(phi)), np.cos(theta))
+	
+	cyan = (0.690196, 0.690196, 0.690196)
+	yellow = (1, 1, 0)
+	magenta = (1, 0, 1)
 
 
-	colormat = np.empty((3), dtype = str)
 	if charges.size == 0:
-		colormat[0] = 'c'
-		colormat[1] = 'c'
-		colormat[2] = 'c'
+		colormat1 = (0.690196, 0.87843, 0.901961)
+		colormat2 = (0.690196, 0.87843, 0.901961)
+		colormat3 = (0.690196, 0.87843, 0.901961)
 
 	else:
-		colormat[np.argmax(charges)] = 'm'
-		colormat[np.argmin(charges)] = 'c'
-		colormat[3 - np.argmin(charges) - np.argmax(charges)] = 'y'
-
-
+		colormat1 = (0.690196, 0.87843, 0.901961)
+		colormat2 = (0.690196, 0.87843, 0.901961)
+		colormat3 = (0.690196, 0.87843, 0.901961)
+		
 	for i in xrange(0, linker_histone_coods1.shape[0]):
 
 		plot_x = linker_histone_coods1[i,0] + x
 		plot_y = linker_histone_coods1[i,1] + y
 		plot_z = linker_histone_coods1[i,2] + z
 
-		ax.plot_surface(plot_x, plot_y, plot_z, color = colormat[0], rstride=1, cstride=1, antialiased=True, linewidth = 0, zorder = 2)
+		mlab.mesh(plot_x, plot_y, plot_z, color = colormat1)
 
 		plot_x = linker_histone_coods2[i,0] + x
 		plot_y = linker_histone_coods2[i,1] + y
 		plot_z = linker_histone_coods2[i,2] + z
 
-		ax.plot_surface(plot_x, plot_y, plot_z, color = colormat[1], rstride=1, cstride=1, antialiased=True, linewidth = 0, zorder = 2)
+		mlab.mesh(plot_x, plot_y, plot_z, color = colormat2)
 
 		plot_x = linker_histone_coods3[i,0] + x
 		plot_y = linker_histone_coods3[i,1] + y
 		plot_z = linker_histone_coods3[i,2] + z
 
-		ax.plot_surface(plot_x, plot_y, plot_z, color = colormat[2], rstride=1, cstride=1, antialiased=True, linewidth = 0, zorder = 2)
+		mlab.mesh(plot_x, plot_y, plot_z, color = colormat3)
 
 ###################################################################################################################################################
 ###################################################################################################################################################
@@ -399,6 +399,9 @@ if args.togglelinker == 'Y':
 	lines_per_frame = (4*n_cores) + (4*n_linkers) + (53*n_cores)
 elif args.togglelinker == 'N':
 	lines_per_frame = (4*n_cores) + (4*n_linkers) + (50*n_cores)
+#Linker Histones have 3 beads.
+#Number of linker histones = Number of Cores
+#So, number of linker histone beads = Number of Cores * 3
 
 
 xyz = np.genfromtxt(args.xyzfile, dtype = float)
@@ -453,10 +456,7 @@ for i in xrange(0,printframe.size):
 
 	###############################################################################################################################
 	#Initializing the plot
-
-	exec('fig' + str(i) + '= plt.figure()')
-	exec("ax = fig" + str(i) + ".gca(projection = '3d')")
-	ax.set_axis_off()
+	#NEED TO FIX HERE.. NOW HARD-CODED FOR 1 FRAME
 	###############################################################################################################################
 
 	currentframe = printframe[i]
@@ -467,7 +467,6 @@ for i in xrange(0,printframe.size):
 
 	core_coods = np.zeros((n_cores,3), dtype = float)
 	core_orientations = np.zeros((n_cores*3, 3), dtype = float)
-
 
 
 	for core_index in xrange(0, n_cores):
@@ -489,6 +488,9 @@ for i in xrange(0,printframe.size):
 		dna_linker_orientations[((dna_linker_index*3)+2),:] = currentcoods[deltaZ+(dna_linker_index*4)+3,:]
 
 	n_histonetails = n_cores * 50
+	#Histones in the core each has a tail. Except the H2A has 2 tails each
+	#Total tails = 8 + 2 = 10
+	#Each tail is 5 beads. Total beads = 50 per core
 	histonetail_coods = np.zeros((n_histonetails,3), dtype = float)
 
 	deltaZ = deltaZ + (n_linkers*4)
@@ -525,6 +527,7 @@ for i in xrange(0,printframe.size):
 	plottedDNAZ = np.empty((0), dtype = float)
 	#The linker and nucleosome bound DNA are represented similarly.
 	#So, store all the DNA coods for this frame in these three arrays and draw them together. 
+	
 
 	for core_index in xrange(args.first_core-1,n_cores):
 
@@ -538,15 +541,14 @@ for i in xrange(0,printframe.size):
 		Xc, Yc, Zc = nucleosome_cylinder(r, core_x, core_y, core_z)
 
 		if rem == rem2:
-			cc = 'b'
+			cc = (0,0,1)
 		elif rem != rem2:
-			cc = '0.75'
-
-		ax.plot_surface(Xc, Yc, Zc, rstride=1, cstride=1, antialiased=True, color = cc, linewidth = 0, zorder = 0)
-
+			cc = (0.662745, 0.662745, 0.662745)
+			
+		mlab.mesh(Xc, Yc, Zc, color = cc)
+		
 		Xn, Yn, Zn = wrapper_dna_coods(r, core_x, core_y, core_z)
 		
-
 		current_linker_coodsX = dna_linker_coods[links_sum:(links_sum+histonedetails[core_index+1]),0]
 		current_linker_coodsY = dna_linker_coods[links_sum:(links_sum+histonedetails[core_index+1]),1]
 		current_linker_coodsZ = dna_linker_coods[links_sum:(links_sum+histonedetails[core_index+1]),2]
@@ -558,29 +560,47 @@ for i in xrange(0,printframe.size):
 		links_sum = links_sum + histonedetails[core_index+1]
 
 	plottedDNA = np.concatenate((np.transpose(np.atleast_2d(plottedDNAX)),np.transpose(np.atleast_2d(plottedDNAY)),np.transpose(np.atleast_2d(plottedDNAZ))), axis = 1)
+	#This plottedDNA has wrapper and linker DNA co-ordinates combined
 	
-	draw_DNA(plottedDNA, ax, histonedetails)
+	draw_DNA(plottedDNA, histonedetails)
 
 	if args.plotlinker == 'Y':
 
 		plotted_linker_coods1 = linker_histone_coods1[args.first_core-1:,:]
 		plotted_linker_coods2 = linker_histone_coods2[args.first_core-1:,:]
 		plotted_linker_coods3 = linker_histone_coods3[args.first_core-1:,:]
-		##This is to avoid plotting Linker histones attached to nucleosome cores not plotted. 
+		##This is to avoid plotting Linker histones attached to the nucleosome cores not plotted. 
 
 
 		if args.linkercharges == 'Auto':
-			draw_ball(plotted_linker_coods1, plotted_linker_coods2, plotted_linker_coods3, ax, np.empty((0)))
+			draw_ball(plotted_linker_coods1, plotted_linker_coods2, plotted_linker_coods3, np.empty((0)))
 		else:
-			draw_ball(plotted_linker_coods1, plotted_linker_coods2, plotted_linker_coods3, ax, linker_charge)
+			draw_ball(plotted_linker_coods1, plotted_linker_coods2, plotted_linker_coods3, linker_charge)
 	
-ax.set_aspect('equal')
-
-ls1 = LightSource(225,-45)
-ls2 = LightSource(225,45)
-ls3 = LightSource(315,45)
-
-ax.view_init(-20,6)
-
-plt.tight_layout()
-plt.show()
+	CF = mlab.gcf()
+	###############################################################################################################################
+	###############################################################################################################################
+	#These are the lighting options. Open to change... 
+	camera_light0 = CF.scene.light_manager.lights[0]
+	camera_light0.elevation = 40
+	camera_light0.azimuth = 60
+	camera_light0.intensity = 1.0
+	
+	camera_light1 = CF.scene.light_manager.lights[1]
+	camera_light1.elevation = -40
+	camera_light1.azimuth = -60
+	camera_light1.intensity = 1.0
+	
+	camera_light2 = CF.scene.light_manager.lights[2]
+	camera_light2.elevation = -40
+	camera_light2.azimuth = 60
+	camera_light2.intensity = 0.5
+	###############################################################################################################################
+	###############################################################################################################################
+	mlab.view(azimuth = 60, elevation = 45, distance = 120)
+	
+	#mlab.yaw(25)
+	#mlab.pitch(90)
+	
+	mlab.figure(figure = CF, bgcolor=(1.0,1.0,1.0), fgcolor = (1.0,1.0,1.0))
+	mlab.show()
