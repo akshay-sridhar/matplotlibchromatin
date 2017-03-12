@@ -114,6 +114,7 @@ def nucleosome_cylinder(r,core_x,core_y,core_z):
 
 	return Xc,Yc,Zc
 ##############################################################################################################
+##############################################################################################################
 def draw_DNA(plottedDNA):
 
 	numDNAbeads = plottedDNA.shape[0]
@@ -124,7 +125,7 @@ def draw_DNA(plottedDNA):
 ##############################################################################################################
 ##############################################################################################################
 
-def draw_ball(linker_histone_coods1, linker_histone_coods2, linker_histone_coods3, charges):
+def draw_LH(linker_histone_coods1, linker_histone_coods2, linker_histone_coods3, charges):
 
 	sph_rad = 1.0
 
@@ -134,41 +135,67 @@ def draw_ball(linker_histone_coods1, linker_histone_coods2, linker_histone_coods
 	x = sph_rad * np.outer(np.cos(phi), np.sin(theta))
 	y = sph_rad * np.outer(np.sin(phi), np.sin(theta))
 	z = sph_rad * np.outer(np.ones(np.size(phi)), np.cos(theta))
-	
-	cyan = (0.690196, 0.690196, 0.690196)
-	yellow = (1, 1, 0)
-	magenta = (1, 0, 1)
 
+		
+	C = (0.690196, 0.878431, 0.901961) #cyan
+	Y = (1, 1, 0) #yellow
+	M = (1, 0, 1) #magenta
+
+	cco = np.zeros((3), dtype = str)
 
 	if charges.size == 0:
-		colormat1 = (0.690196, 0.87843, 0.901961)
-		colormat2 = (0.690196, 0.87843, 0.901961)
-		colormat3 = (0.690196, 0.87843, 0.901961)
+		cco[0] = 'C'
+		cco[1] = 'C'
+		cco[2] = 'C'
 
 	else:
-		colormat1 = (0.690196, 0.87843, 0.901961)
-		colormat2 = (0.690196, 0.87843, 0.901961)
-		colormat3 = (0.690196, 0.87843, 0.901961)
+		cco[np.argmin(charges)] = 'Y'
+		cco[np.argmax(charges)] = 'M'
+		cco[3 - (np.argmax(charges) + np.argmin(charges))] = 'C'
 		
 	for i in xrange(0, linker_histone_coods1.shape[0]):
 
+		
 		plot_x = linker_histone_coods1[i,0] + x
 		plot_y = linker_histone_coods1[i,1] + y
 		plot_z = linker_histone_coods1[i,2] + z
 
-		mlab.mesh(plot_x, plot_y, plot_z, color = colormat1)
+		mlab.mesh(plot_x, plot_y, plot_z, color = eval(cco[0]))
 
 		plot_x = linker_histone_coods2[i,0] + x
 		plot_y = linker_histone_coods2[i,1] + y
 		plot_z = linker_histone_coods2[i,2] + z
 
-		mlab.mesh(plot_x, plot_y, plot_z, color = colormat2)
+		mlab.mesh(plot_x, plot_y, plot_z, color = eval(cco[1]))
 
 		plot_x = linker_histone_coods3[i,0] + x
 		plot_y = linker_histone_coods3[i,1] + y
 		plot_z = linker_histone_coods3[i,2] + z
 
-		mlab.mesh(plot_x, plot_y, plot_z, color = colormat3)
+		mlab.mesh(plot_x, plot_y, plot_z, color = eval(cco[2]))
+
+##############################################################################################################
+##############################################################################################################
+def draw_histtail(histonetail_coods):
+
+	sph_rad = 0.5
+
+	phi = np.linspace(0, 2*np.pi, 25, endpoint = True, dtype = float)
+	theta = np.linspace(0, np.pi, 25, endpoint = True, dtype = float)
+
+	x = sph_rad * np.outer(np.cos(phi), np.sin(theta))
+	y = sph_rad * np.outer(np.sin(phi), np.sin(theta))
+	z = sph_rad * np.outer(np.ones(np.size(phi)), np.cos(theta))
+
+	G = (0.596078, 0.984314, 0.596078)
+
+	for i in xrange(0, histonetail_coods.shape[0]):
+		plot_x = x + histonetail_coods[i,0]
+		plot_y = y + histonetail_coods[i,1]
+		plot_z = z + histonetail_coods[i,2]
+
+		mlab.mesh(plot_x, plot_y, plot_z, color = G)
+
 
 ###################################################################################################################################################
 ###################################################################################################################################################
@@ -191,6 +218,7 @@ Optional options
 -------------------------------------------------------------------------
 -fc 				: The index of the first core to be plotted. DEFAULT = 1
 -lh				: Linker histone present in co-ordinate file (Y/N). DEFAULT = Y
+-pht 			: Plot core histone tails (Y/N). DEFAULT = N
 -plh				: Plot linker histone (Y/N). DEFAULT = Y
 -fr 				: File with frame numbers to be rendered
 -lc 				: File with charges of Linker Histones 1,2,3. Default = Equal Charges
@@ -208,6 +236,7 @@ parser.add_argument('-p', nargs = 1, dest = 'histfile', help = argparse.SUPPRESS
 parser.add_argument('-fc', nargs = 1, dest = 'first_core', default = [1], type = int, help = argparse.SUPPRESS)
 parser.add_argument('-lh', nargs = 1, dest = 'togglelinker', default = ['Y'], help = argparse.SUPPRESS)
 parser.add_argument('-plh', nargs = 1, dest = 'plotlinker', default = ['Y'], help = argparse.SUPPRESS)
+parser.add_argument('-pht', nargs = 1, dest = 'plothisttail', default = ['Y'], help = argparse.SUPPRESS)
 parser.add_argument('-fr', nargs = 1, dest = 'framefile', default = ['Auto'], help = argparse.SUPPRESS)
 parser.add_argument('-lc', nargs = 1, dest = 'linkercharges', default = ['Auto'], help = argparse.SUPPRESS)
 
@@ -222,6 +251,7 @@ args.framefile = args.framefile[0]
 args.outputfile = args.outputfile[0]
 args.togglelinker = args.togglelinker[0]
 args.plotlinker = args.plotlinker[0]
+args.plothisttail = args.plothisttail[0]
 args.first_core = args.first_core[0]
 args.linkercharges = args.linkercharges[0]
 
@@ -237,6 +267,10 @@ if args.framefile != 'Auto':
 	if not os.path.isfile(args.framefile):
 		print('File containing the list of frames does not exist\n')
 		sys.exit(1)
+
+if args.plothisttail != 'Y' and args.plothisttail != 'N':
+	print('Only values of "Y" and "N" are allowed with option -pht\n')
+	sys.exit(1)
 
 if args.togglelinker != 'Y' and args.togglelinker != 'N':
 	print('Only values of "Y" and "N" are allowed with option -lh\n')
@@ -267,7 +301,7 @@ if args.plotlinker == 'Y' and args.linkercharges != 'Auto':
 			args.linkercharge = 'Auto'
 
 		else:
-			linkercharge = np.abs(linker_charge)
+			linker_charge = np.abs(linker_charge)
 
 ###################################################################################################################################################
 ###################################################################################################################################################
@@ -321,13 +355,16 @@ if args.framefile == 'Auto':
 
 else:
 
-	#The following three lines are rendering options for offline rendering without GUI
-	#Mayavi uses the vtk library to output. So, switching off mayavi GUI is insufficient and the vtk GUI stops batch processsing
-	#So, we set the VTK export options too here to stop the vtk GUI from asking confirmations. 
-
+	#The following three lines are rendering options for offline rendering without GUI.
+	#Mayavi uses the vtk library to output. So, deactivating mayavi GUI is insufficient as the vtk GUI stops batch processsing.
+	#So, we set the VTK export options here to stop the vtk GUI from asking confirmations. 
 	mlab.options.offscreen = True
-	from tvtk.api import tvtk
-	exp_options = tvtk.GL2PSExporter(file_format = 'eps', sort = 'bsp', compress = 1)
+	try:
+		from tvtk.api import tvtk
+		exp_options = tvtk.GL2PSExporter(file_format = 'eps', sort = 'bsp', compress = 1)
+	except:
+		print('ERROR: Unable to access the vtk module.\n')
+		sys.exit(1)
 	
 	printframe = np.genfromtxt(args.framefile, usecols = 0, dtype = int)
 
@@ -477,10 +514,16 @@ for i in xrange(0,printframe.size):
 
 
 		if args.linkercharges == 'Auto':
-			draw_ball(plotted_linker_coods1, plotted_linker_coods2, plotted_linker_coods3, np.empty((0)))
+			draw_LH(plotted_linker_coods1, plotted_linker_coods2, plotted_linker_coods3, np.empty((0)))
 		else:
-			draw_ball(plotted_linker_coods1, plotted_linker_coods2, plotted_linker_coods3, linker_charge)
+			draw_LH(plotted_linker_coods1, plotted_linker_coods2, plotted_linker_coods3, linker_charge)
 	
+	if args.plothisttail == 'Y':
+		first_plot_hist_tail = (args.first_core*50) - 1
+		plotted_hist_tail = histonetail_coods[first_plot_hist_tail:,:]
+		draw_histtail(plotted_hist_tail)
+
+
 	CF = mlab.gcf()
 	###############################################################################################################################
 	###############################################################################################################################
@@ -507,7 +550,7 @@ for i in xrange(0,printframe.size):
 	#mlab.pitch(90)
 	mlab.figure(figure = CF, bgcolor=(1.0,1.0,1.0), fgcolor = (1.0,1.0,1.0))
 
-	fname = 'frame' + str(currentframe) + '.ps'
+	fname = 'frame' + str(currentframe) + '.eps'
 
 
 	if args.framefile == 'Auto':
