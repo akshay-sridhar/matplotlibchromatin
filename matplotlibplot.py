@@ -18,8 +18,7 @@ try:
 except:
 	print('Error: Unable to access the mayavi module\nNote that Mayavi also has dependencies on the VTK library\n')
 	sys.exit(1)
-#mlab.options.offscreen = True
-#Turn this option on/off if you want batch/interactive plotting
+
 ##############################################################################################################
 def unitvector(v):
 	'''
@@ -298,6 +297,7 @@ n_frames = int(np.floor(xyz.shape[0]/lines_per_frame))
 if args.framefile == 'Auto':
 
 	printframe = np.zeros((1), dtype = int)
+	mlab.options.offscreen = False
 
 	inputcheck = 'nok'
 	while(inputcheck == 'nok'):
@@ -320,6 +320,15 @@ if args.framefile == 'Auto':
 				inputcheck = 'ok'
 
 else:
+
+	#The following three lines are rendering options for offline rendering without GUI
+	#Mayavi uses the vtk library to output. So, switching off mayavi GUI is insufficient and the vtk GUI stops batch processsing
+	#So, we set the VTK export options too here to stop the vtk GUI from asking confirmations. 
+
+	mlab.options.offscreen = True
+	from tvtk.api import tvtk
+	exp_options = tvtk.GL2PSExporter(file_format = 'eps', sort = 'bsp', compress = 1)
+	
 	printframe = np.genfromtxt(args.framefile, usecols = 0, dtype = int)
 
 	if np.sum(np.int32(np.isnan(printframe))) > 0:
@@ -338,13 +347,11 @@ else:
 		sys.exit(1)
 
 
-
 for i in xrange(0,printframe.size):
 
 
 	###############################################################################################################################
 	#Initializing the plot
-	#NEED TO FIX HERE.. NOW HARD-CODED FOR 1 FRAME
 	###############################################################################################################################
 
 	currentframe = printframe[i]
@@ -435,8 +442,13 @@ for i in xrange(0,printframe.size):
 			#Colour is in RGB format. So, (0,0,1) is Blue
 		elif rem != rem2:
 			cc = (0.33333, 0.33333, 0.33333)
-			#(0.662745, 0.662745, 0.662745) tuple represents grey colour. 
-			
+			#(0.33333, 0.33333, 0.33333) tuple represents a dark grey colour. 
+		
+		#This alternative colouring of blue and grey of the nucleosome core allows easier distingushing between the solenoidal and zig-zag chromatin
+		#In Solenoidal chromatin, nucleosomes interact with (i-1) and (i+1)
+		#In Zig-Zag chromatin, nucleosomes interact with (i-2) and (i+2) 
+
+
 		mlab.mesh(Xc, Yc, Zc, color = cc)
 		
 		Xn, Yn, Zn = wrapper_dna_coods(r, core_x, core_y, core_z)
@@ -484,15 +496,24 @@ for i in xrange(0,printframe.size):
 	camera_light1.intensity = 1.0
 	
 	camera_light2 = CF.scene.light_manager.lights[2]
-	camera_light2.elevation = -40
-	camera_light2.azimuth = 60
-	camera_light2.intensity = 0.5
+	camera_light2.intensity = 0.0
+	#Turning off the third light source. 
+	#It makes the image too bright for the visualizer to render 'pleasing to the eye'.
 	###############################################################################################################################
 	###############################################################################################################################
-	mlab.view(azimuth = 60, elevation = 45, distance = 120)
+	mlab.view(azimuth = 60, elevation = 45, distance = 200)
 	
 	#mlab.yaw(25)
 	#mlab.pitch(90)
-	
 	mlab.figure(figure = CF, bgcolor=(1.0,1.0,1.0), fgcolor = (1.0,1.0,1.0))
-	mlab.show()
+
+	fname = 'frame' + str(currentframe) + '.ps'
+
+
+	if args.framefile == 'Auto':
+		mlab.show()
+
+	else:
+		#Turn this option off if you want interactive plotting
+		#Currently it is turned on for batch processing
+		CF.scene.save_gl2ps(fname, exp_options)
