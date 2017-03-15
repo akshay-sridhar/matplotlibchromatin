@@ -236,7 +236,7 @@ parser.add_argument('-p', nargs = 1, dest = 'histfile', help = argparse.SUPPRESS
 parser.add_argument('-fc', nargs = 1, dest = 'first_core', default = [1], type = int, help = argparse.SUPPRESS)
 parser.add_argument('-lh', nargs = 1, dest = 'togglelinker', default = ['Y'], help = argparse.SUPPRESS)
 parser.add_argument('-plh', nargs = 1, dest = 'plotlinker', default = ['Y'], help = argparse.SUPPRESS)
-parser.add_argument('-pht', nargs = 1, dest = 'plothisttail', default = ['Y'], help = argparse.SUPPRESS)
+parser.add_argument('-pht', nargs = 1, dest = 'plothisttail', default = ['N'], help = argparse.SUPPRESS)
 parser.add_argument('-fr', nargs = 1, dest = 'framefile', default = ['Auto'], help = argparse.SUPPRESS)
 parser.add_argument('-lc', nargs = 1, dest = 'linkercharges', default = ['Auto'], help = argparse.SUPPRESS)
 
