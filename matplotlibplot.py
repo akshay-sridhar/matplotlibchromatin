@@ -129,8 +129,8 @@ def draw_LH(linker_histone_coods1, linker_histone_coods2, linker_histone_coods3,
 
 	sph_rad = 1.0
 
-	phi = np.linspace(0, 2*np.pi, 25, endpoint = True, dtype = float)
-	theta = np.linspace(0, np.pi, 25, endpoint = True, dtype = float)
+	phi = np.linspace(0, 2*np.pi, 50, endpoint = True, dtype = float)
+	theta = np.linspace(0, np.pi, 50, endpoint = True, dtype = float)
 
 	x = sph_rad * np.outer(np.cos(phi), np.sin(theta))
 	y = sph_rad * np.outer(np.sin(phi), np.sin(theta))
