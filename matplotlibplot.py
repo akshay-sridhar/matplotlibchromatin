@@ -30,13 +30,13 @@ def unitvector(v):
 def cylinder():
 	'''
 	Returns the unit cylinder that corresponds to the curve r.
-    INPUTS:  ro - a vector of radii (Default = 3.8)
+    INPUTS:  ro - a vector of radii (Default = 4.0)
              n - number of coordinates to return for each element in r (Default = 40)
 
     OUTPUTS: x,y,z - coordinates of points
     '''
 
-	ro = 4.95
+	ro = 5.00
 	n = 40
 
 	points = np.linspace(0,2*np.pi,n+1)
