@@ -218,7 +218,7 @@ Optional options
 -------------------------------------------------------------------------
 -fc 				: The index of the first core to be plotted. DEFAULT = 1
 -lh				: Linker histone present in co-ordinate file (Y/N). DEFAULT = Y
--pht 			: Plot core histone tails (Y/N). DEFAULT = N
+-pht 				: Plot core histone tails (Y/N). DEFAULT = N
 -plh				: Plot linker histone (Y/N). DEFAULT = Y
 -fr 				: File with frame numbers to be rendered
 -lc 				: File with charges of Linker Histones 1,2,3. Default = Equal Charges
