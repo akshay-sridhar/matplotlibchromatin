@@ -221,7 +221,7 @@ Optional options
 -pht 				: Plot core histone tails (Y/N). DEFAULT = N
 -plh				: Plot linker histone (Y/N). DEFAULT = Y
 -fr 				: File with frame numbers to be rendered
--lc 				: File with charges of Linker Histones 1,2,3. Default = Equal Charges
+-lc 				: File with charges of Linker Histones 1,2,3. DEFAULT = Equal Charges
 
 Other options
 -------------------------------------------------------------------------
