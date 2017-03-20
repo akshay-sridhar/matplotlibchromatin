@@ -195,7 +195,64 @@ def draw_histtail(histonetail_coods):
 		plot_z = z + histonetail_coods[i,2]
 
 		mlab.mesh(plot_x, plot_y, plot_z, color = G)
+##############################################################################################################
+##############################################################################################################
+def calc_pk(core_coods_calc):
 
+	core_array = np.linspace(1, ncalc_cores, ncalc_cores)
+	tempmat = np.zeros((6), dtype = float)
+	diffmat = np.zeros((5), dtype = float)
+	fracmat = np.zeros((5), dtype = float)
+
+	for k in xrange(1,7):
+
+		aa1 = np.polyfit(core_array, core_coods_calc[:,0], k)
+		aa2 = np.polyfit(core_array, core_coods_calc[:,1], k)
+		aa3 = np.polyfit(core_array, core_coods_calc[:,2], k)
+
+		fitx = np.polyval(aa1, core_array)
+		fity = np.polyval(aa2, core_array)
+		fitz = np.polyval(aa3, core_array)
+
+		resx = fitx - core_coods_calc[:,0]
+		resy = fity - core_coods_calc[:,1]
+		resz = fitz - core_coods_calc[:,2]
+
+		tempmat[k-1] = np.sum(np.sqrt(np.square(resx) + np.square(resy) + np.square(resz)))
+
+		if k > 1:
+			diffmat[k-2] = tempmat[k-2] - tempmat[k-1]
+			fracmat[k-2] = (diffmat[k-2]/tempmat[k-2]) * 100.0
+
+	if np.sum(np.int32(fracmat < 3.34)) == 0:
+		pol_deg = 5
+	else:
+		pol_deg = np.argmax(fracmat < 3.34) + 1
+
+	aa1 = np.polyfit(core_array, core_coods_calc[:,0], pol_deg)
+	aa2 = np.polyfit(core_array, core_coods_calc[:,1], pol_deg)
+	aa3 = np.polyfit(core_array, core_coods_calc[:,2], pol_deg)
+
+	fitx = np.polyval(aa1, core_array)
+	fity = np.polyval(aa2, core_array)
+	fitz = np.polyval(aa3, core_array)
+
+	step = 2
+	FL_core_array = np.arange(1, n_cores+1, step) - 1
+	n_FLcores = np.size(FL_core_array)
+
+	fit_FL = np.zeros((n_FLcores,3), dtype = float)
+
+	fit_FL[:,0] = fitx[FL_core_array]
+	fit_FL[:,1] = fity[FL_core_array]
+	fit_FL[:,2] = fitz[FL_core_array]
+
+	FL = 0
+	for k in xrange(0, n_FLcores-1):
+		FL = FL + np.linalg.norm(fit_FL[k+1,:] - fit_FL[k,:])
+
+	pack_ratio = (11*n_cores)/FL
+	return pack_ratio
 
 ###################################################################################################################################################
 ###################################################################################################################################################
@@ -220,6 +277,7 @@ Optional options
 -lh				: Linker histone present in co-ordinate file (Y/N). DEFAULT = Y
 -pht 				: Plot core histone tails (Y/N). DEFAULT = N
 -plh				: Plot linker histone (Y/N). DEFAULT = Y
+-pk 				: Calculate and print the packing ratio. DEFAULT = N
 -fr 				: File with frame numbers to be rendered
 -lc 				: File with charges of Linker Histones 1,2,3. DEFAULT = Equal Charges
 
@@ -237,6 +295,7 @@ parser.add_argument('-fc', nargs = 1, dest = 'first_core', default = [1], type =
 parser.add_argument('-lh', nargs = 1, dest = 'togglelinker', default = ['Y'], help = argparse.SUPPRESS)
 parser.add_argument('-plh', nargs = 1, dest = 'plotlinker', default = ['Y'], help = argparse.SUPPRESS)
 parser.add_argument('-pht', nargs = 1, dest = 'plothisttail', default = ['N'], help = argparse.SUPPRESS)
+parser.add_argument('-pk', nargs = 1, dest = 'calc_pk', default = ['N'], help = argparse.SUPPRESS)
 parser.add_argument('-fr', nargs = 1, dest = 'framefile', default = ['Auto'], help = argparse.SUPPRESS)
 parser.add_argument('-lc', nargs = 1, dest = 'linkercharges', default = ['Auto'], help = argparse.SUPPRESS)
 
@@ -252,6 +311,7 @@ args.outputfile = args.outputfile[0]
 args.togglelinker = args.togglelinker[0]
 args.plotlinker = args.plotlinker[0]
 args.plothisttail = args.plothisttail[0]
+args.calc_pk = args.calc_pk[0]
 args.first_core = args.first_core[0]
 args.linkercharges = args.linkercharges[0]
 
@@ -270,6 +330,10 @@ if args.framefile != 'Auto':
 
 if args.plothisttail != 'Y' and args.plothisttail != 'N':
 	print('Only values of "Y" and "N" are allowed with option -pht\n')
+	sys.exit(1)
+
+if args.calc_pk != 'Y' and args.calc_pk != 'N':
+	print('Only values of "Y" and "N" are allowed with option -pk\n')
 	sys.exit(1)
 
 if args.togglelinker != 'Y' and args.togglelinker != 'N':
@@ -355,7 +419,7 @@ if args.framefile == 'Auto':
 
 else:
 
-	#The following three lines are rendering options for offline rendering without GUI.
+	#The following three lines are the options for offscreen rendering without GUI.
 	#Mayavi uses the vtk library to output. So, deactivating mayavi GUI is insufficient as the vtk GUI stops batch processsing.
 	#So, we set the VTK export options here to stop the vtk GUI from asking confirmations. 
 	mlab.options.offscreen = True
@@ -523,6 +587,19 @@ for i in xrange(0,printframe.size):
 		plotted_hist_tail = histonetail_coods[first_plot_hist_tail:,:]
 		draw_histtail(plotted_hist_tail)
 
+	if args.calc_pk == 'Y':
+		core_coods_calc = core_coods[args.first_core-1:,:]
+		ncalc_cores = core_coods_calc.shape[0]
+
+		if ncalc_cores == 1:
+			print('Cannot calculate packing ratios for 1 core\n')
+
+		else:
+			pack_ratio = calc_pk(core_coods_calc)
+			print_text = 'Packing Ratio\n' + str(round(pack_ratio,2))
+
+			mlab.text3d(core_coods_calc[0,0]+10, core_coods_calc[0,1]+10, core_coods_calc[0,2]+10, print_text, scale = 3, color = (0,0,0))
+
 
 	CF = mlab.gcf()
 	###############################################################################################################################
@@ -548,7 +625,12 @@ for i in xrange(0,printframe.size):
 	
 	#mlab.yaw(25)
 	#mlab.pitch(90)
+	#Uncomment and modify these two options to rotate the 'View' vertically and horizontally
+
+
 	mlab.figure(figure = CF, bgcolor=(1.0,1.0,1.0), fgcolor = (1.0,1.0,1.0))
+	#Manually setting the BackGround and ForeGround colour to white
+	#MayaVi automatically sets it to Grey. 
 
 	fname = 'frame' + str(currentframe) + '.eps'
 
