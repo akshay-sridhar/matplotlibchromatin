@@ -69,8 +69,8 @@ def wrapper_dna_coods(r, core_x, core_y, core_z):
 	If provided the co-ordinates of the nucleosome core 'r' and its orientations:
 	This function returns co-ordinates of the DNA wrapped around the core
 
-	The function assumes there are 171 base-pairs around each nucleosome with 2 wraps
-	Thus, a base pair is placed at 171 equal intervals around a total angle of (4*pi)
+	The function assumes there are 147 base-pairs around each nucleosome with 2 wraps
+	Thus, a base pair is placed at 147 equal intervals around a total angle of (4*pi)
 
 	The deltaZ is set at 1.8 units (The height of the cylinder signifying the nucleosome core)
 	'''
@@ -583,7 +583,7 @@ for i in xrange(0,printframe.size):
 			draw_LH(plotted_linker_coods1, plotted_linker_coods2, plotted_linker_coods3, linker_charge)
 	
 	if args.plothisttail == 'Y':
-		first_plot_hist_tail = (args.first_core*50) - 1
+		first_plot_hist_tail = (args.first_core-1)*50
 		plotted_hist_tail = histonetail_coods[first_plot_hist_tail:,:]
 		draw_histtail(plotted_hist_tail)
 
@@ -592,7 +592,7 @@ for i in xrange(0,printframe.size):
 		ncalc_cores = core_coods_calc.shape[0]
 
 		if ncalc_cores == 1:
-			print('Cannot calculate packing ratios for 1 core\n')
+			print('Cannot calculate packing ratios for 1 core. Skipping Calculation\n')
 
 		else:
 			pack_ratio = calc_pk(core_coods_calc)
