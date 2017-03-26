@@ -69,8 +69,8 @@ def wrapper_dna_coods(r, core_x, core_y, core_z):
 	If provided the co-ordinates of the nucleosome core 'r' and its orientations:
 	This function returns co-ordinates of the DNA wrapped around the core
 
-	The function assumes there are 147 base-pairs around each nucleosome with 2 wraps
-	Thus, a base pair is placed at 147 equal intervals around a total angle of (4*pi)
+	The function assumes there are 1.7 base-pair turns around each nucleosome 
+	Thus, 170 equal intervals are built around a total angle of (4*pi)
 
 	The deltaZ is set at 1.8 units (The height of the cylinder signifying the nucleosome core)
 	'''
