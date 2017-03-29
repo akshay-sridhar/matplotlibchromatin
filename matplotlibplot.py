@@ -262,7 +262,7 @@ parser = argparse.ArgumentParser(prog = 'CG Chromatin Visualizer', add_help = Fa
 *************************************************************************
 Chromatin CG Visualizer
 author: Akshay Sridhar (as2637@cam.ac.uk)
-git: https://github.com/akshay-sridhar/CGchromatin
+git: https://github.com/akshay-sridhar/matplotlibchromatin
 *************************************************************************
 
 Option 				Description                    
